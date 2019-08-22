@@ -5,6 +5,7 @@ Using PhysiCell version 1.6.0
 * begin with a 2-D model
 * how many different cell types?
 * read initial cell data from .csv files
+* cell phenotype properties? cycle, death, volume, motility, etc. 
 * create neighbor lists
 * create custom data for cells
 * create config file (.xml) with relevant <user_parameters>
