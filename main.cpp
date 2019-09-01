@@ -137,9 +137,7 @@ int main( int argc, char* argv[] )
 
 	PhysiCell_SVG_options.length_bar = 200; 
 
-	// for simplicity, set a pathology coloring function 
-	
-	std::vector<std::string> (*cell_coloring_function)(Cell*) = viral_coloring_function; 
+	std::vector<std::string> (*cell_coloring_function)(Cell*) = death_coloring_function; 
 	
 	sprintf( filename , "%s/initial.svg" , PhysiCell_settings.folder.c_str() ); 
 	SVG_plot( filename , microenvironment, 0.0 , PhysiCell_globals.current_time, cell_coloring_function );
@@ -226,7 +224,6 @@ int main( int argc, char* argv[] )
 	}
 	
 	// save a final simulation snapshot 
-	
 	sprintf( filename , "%s/final" , PhysiCell_settings.folder.c_str() ); 
 	save_PhysiCell_to_MultiCellDS_xml_pugi( filename , microenvironment , PhysiCell_globals.current_time ); 
 	

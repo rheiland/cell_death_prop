@@ -97,8 +97,11 @@ void create_cell_types( void )
 	cell_defaults.phenotype.motility.restrict_to_2D = true; 
 
 	// make sure the defaults are self-consistent. 
+
 	cell_defaults.phenotype.secretion.sync_to_microenvironment( &microenvironment );
 	cell_defaults.phenotype.molecular.sync_to_microenvironment( &microenvironment );
+
+	cell_defaults.functions.update_phenotype = death_function; 
 	cell_defaults.phenotype.sync_to_functions( cell_defaults.functions ); 
 
 	// set the rate terms in the default phenotype 
@@ -148,6 +151,7 @@ void setup_microenvironment( void )
 	int signal_ID = microenvironment.find_density_index( "signal" ); 
 	// microenvironment.diffusion_coefficients[signal_ID] = parameters.doubles("viral_diffusion_coefficient"); 
 	
+	default_microenvironment_options.track_internalized_substrates_in_each_agent = true; 
 	default_microenvironment_options.outer_Dirichlet_conditions = false;
 	microenvironment.diffusion_coefficients[0] = 10; 	// no diffusion
 
@@ -195,6 +199,7 @@ Cell index,Cell X,Cell Y,Time of Nucleation,Time of death
 */
 	std::ifstream infile(csv_file);
 
+	static int nSignal = microenvironment.find_density_index( "signal" ); 
 	int idx;
 	double x,y, t_nuc,t_death;
 	char sep;
@@ -221,20 +226,78 @@ Cell index,Cell X,Cell Y,Time of Nucleation,Time of death
 		pC->set_total_volume(volume);
 
 		pC->phenotype.secretion.set_all_secretion_to_zero(); 
-		pC->functions.update_phenotype = NULL; 
+		// pC->functions.update_phenotype = NULL; 
 		pC->custom_data[ "time_of_death" ] = 0.0; 
 		
-		// pC->phenotype.molecular.internalized_total_substrates[ nVirus ] = 1; 
+		pC->phenotype.molecular.internalized_total_substrates[ nSignal ] = 1; 
 	}
 
 	return; 
 }
 
+void death_function( Cell* pCell, Phenotype& phenotype, double dt )
+{
+	static int nSignal = microenvironment.find_density_index( "signal" ); 
+	
+	// digest virus particles inside me 
+	static double implicit_Euler_constant = 
+		(1.0 + dt * parameters.doubles("virus_digestion_rate") );  // todo: check for defined!
+
+	// phenotype.molecular.internalized_total_substrates[nSignal] /= implicit_Euler_constant; 
+	// phenotype.molecular.internalized_total_substrates[nSignal] /= implicit_Euler_constant; 
+	phenotype.molecular.internalized_total_substrates[nSignal] += 1; 
+	std::cout << "---------  int_tot_sub= " << phenotype.molecular.internalized_total_substrates[nSignal] << std::endl;
+	
+	if (phenotype.molecular.internalized_total_substrates[nSignal] > 2) 
+	{
+		std::cout << "\t\tdie!" << std::endl; 
+		pCell->lyse_cell(); // start_death( apoptosis_model_index );
+		pCell->functions.update_phenotype = NULL; 
+		return; 
+	}
+
+	// check for contact with a cell
+	// Cell* pTestCell = NULL; 
+	// std::vector<Cell*> neighbors = get_possible_neighbors(pCell);
+	
+	// for( int n=0; n < neighbors.size() ; n++ )
+	// {
+	// 	pTestCell = neighbors[n]; 
+	// 	// if it is not me and not a macrophage 
+	// 	if( pTestCell != pCell && pTestCell->type != macrophage.type )
+	// 	{
+	// 		// calculate distance to the cell 
+	// 		std::vector<double> displacement = pTestCell->position;
+	// 		displacement -= pCell->position;
+	// 		double distance = norm( displacement ); 
+			
+	// 		double max_distance = pCell->phenotype.geometry.radius + 
+	// 			pTestCell->phenotype.geometry.radius; 
+	// 		max_distance *= 1.1; 
+			
+	// 		// if it is not a macrophage, test for viral load 
+	// 		// if high viral load, eat it. 
+	// 		if( pTestCell->phenotype.molecular.internalized_total_substrates[nSignal] 
+	// 			> parameters.doubles("min_virion_detection_threshold") &&
+	// 			distance < max_distance )
+	// 		{
+	// 			std::cout << "\t\tnom nom nom" << std::endl; 
+	// 			pCell->ingest_cell( pTestCell ); 
+	// 		}
+	// 	}
+	// }
+	
+	return; 
+}
+
 std::vector<std::string> my_coloring_function( Cell* pCell )
 {
-	// start with flow cytometry coloring 
+	static int nSignal = microenvironment.find_density_index( "death" ); 
 	
+	// start with flow cytometry coloring 
 	std::vector<std::string> output = false_cell_coloring_cytometry(pCell); 
+
+	std::cout << "--- my_coloring_function i_t_s " <<  pCell->phenotype.molecular.internalized_total_substrates[nSignal] << std::endl;
 		
 	if( pCell->phenotype.death.dead == false && pCell->type == 1 )
 	{
@@ -245,16 +308,18 @@ std::vector<std::string> my_coloring_function( Cell* pCell )
 	return output; 
 }
 
-std::vector<std::string> viral_coloring_function( Cell* pCell )
+std::vector<std::string> death_coloring_function( Cell* pCell )
 {
 	// start with flow cytometry coloring 
 	
 	std::vector<std::string> output = { "magenta" , "black" , "magenta", "black" }; 
-	// static int nVirus = microenvironment.find_density_index( "virus" ); 
+	static int nSignal = microenvironment.find_density_index( "death" ); 
 	
 	// static double min_virus = parameters.doubles( "min_virion_count" );
 	// static double max_virus = parameters.doubles( "burst_virion_count" ); 
 	// static double denominator = max_virus - min_virus + 1e-15; 
+
+	std::cout << "--- cell i_t_s " <<  pCell->phenotype.molecular.internalized_total_substrates[nSignal] << std::endl;
 				
 	// dead cells 
 	if( pCell->phenotype.death.dead == true )
@@ -263,8 +328,6 @@ std::vector<std::string> viral_coloring_function( Cell* pCell )
 		 output[2] = "darkred"; 
 		 return output; 
 	}
-		
-	
 	return output; 
 }
 
@@ -298,3 +361,24 @@ std::vector<Cell*> get_possible_neighbors( Cell* pCell )
 	return neighbors; 
 }
 
+std::vector<double> integrate_total_substrates( void )
+{
+	// start with 0 vector 
+	std::vector<double> out( microenvironment.number_of_densities() , 0.0 ); 
+
+	// integrate extracellular substrates 
+	for( unsigned int n = 0; n < microenvironment.number_of_voxels() ; n++ )
+	{
+		// out = out + microenvironment(n) * dV(n) 
+		axpy( &out , microenvironment.mesh.voxels[n].volume , microenvironment(n) ); 
+	}
+
+	// inte
+	for( unsigned int n=0; n < (*all_cells).size(); n++ )
+	{
+		Cell* pC = (*all_cells)[n];
+		out += pC->phenotype.molecular.internalized_total_substrates;
+	}
+	
+	return out; 
+}
