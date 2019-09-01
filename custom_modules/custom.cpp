@@ -144,10 +144,33 @@ void setup_microenvironment( void )
 	}
 	
 	// override BioFVM setup with user parameters 
-	int dummy_ID = microenvironment.find_density_index( "dummy" ); 
+	// int dummy_ID = microenvironment.find_density_index( "dummy" ); 
+	int signal_ID = microenvironment.find_density_index( "signal" ); 
+	// microenvironment.diffusion_coefficients[signal_ID] = parameters.doubles("viral_diffusion_coefficient"); 
 	
+	default_microenvironment_options.outer_Dirichlet_conditions = false;
+	microenvironment.diffusion_coefficients[0] = 10; 	// no diffusion
+
 	// initialize BioFVM 
 	initialize_microenvironment(); 	
+
+	// double factor = 1.0;
+	// for( unsigned int n=0; n < microenvironment.number_of_voxels() ; n++ )
+	// {
+	// 	factor = 1.0 - ((n%20)/20.);
+	// 	bc_vector[0] = factor*38.;
+	// 	microenvironment(n) = bc_vector; 
+	// }	
+
+	// std::vector<double> bc_vector( 3 , 42  ); // 21% o2
+	// bc_vector[1] = 1.0; 
+	// bc_vector[2] = 0.0; 
+
+
+	std::vector<double> bc_vector( 1 , 42  );   // 21% o2
+	int n = microenvironment.number_of_voxels() / 2;
+	bc_vector[0] = 500.0; 
+	microenvironment(n+20) = bc_vector; 
 	
 	return; 
 }
@@ -181,7 +204,7 @@ Cell index,Cell X,Cell Y,Time of Nucleation,Time of death
 	std::cout << "-------- csv header: \n" << line << std::endl;
 	// while (std::getline(infile, line) && (c == ',') )
 	static double radius = parameters.doubles( "cell_radius" );
-	double volume = 4./3 * PhysiCell_constants::pi * radius;
+	double volume = 4./3 * PhysiCell_constants::pi * radius*radius*radius;
 	while ((infile >> idx >> sep >> x >> sep >> y >> sep >> t_nuc >> sep >> t_death) && (sep == ','))
 	{
 /*
