@@ -101,3 +101,5 @@ std::vector<std::string> death_coloring_function( Cell* pCell );
 
 std::vector<double> integrate_total_substrates( void ); 
 
+std::vector <std::pair <int, int>> get_all_neighbors();
+std::vector <Cell*> get_cell_neighbors(Cell* cell);

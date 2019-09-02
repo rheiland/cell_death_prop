@@ -101,8 +101,8 @@ void create_cell_types( void )
 	cell_defaults.phenotype.secretion.sync_to_microenvironment( &microenvironment );
 	cell_defaults.phenotype.molecular.sync_to_microenvironment( &microenvironment );
 
-	cell_defaults.functions.update_phenotype = death_function; 
-	cell_defaults.phenotype.sync_to_functions( cell_defaults.functions ); 
+	cell_defaults.functions.update_phenotype = death_function;
+	cell_defaults.phenotype.sync_to_functions( cell_defaults.functions );
 
 	// set the rate terms in the default phenotype 
 
@@ -126,6 +126,8 @@ void create_cell_types( void )
 
 	// add custom data here, if any 
 	cell_defaults.custom_data.add_variable( "time_of_death", "dimensionless", 0.0 );
+	cell_defaults.custom_data.add_variable( "time_of_nucleation", "dimensionless", 0.0 );
+
 
 	return; 
 }
@@ -147,15 +149,15 @@ void setup_microenvironment( void )
 	}
 	
 	// override BioFVM setup with user parameters 
-	// int dummy_ID = microenvironment.find_density_index( "dummy" ); 
-	int signal_ID = microenvironment.find_density_index( "signal" ); 
-	// microenvironment.diffusion_coefficients[signal_ID] = parameters.doubles("viral_diffusion_coefficient"); 
+	// int dummy_ID = microenvironment.find_density_index( "dummy" );
+	int signal_ID = microenvironment.find_density_index( "signal" );
+	// microenvironment.diffusion_coefficients[signal_ID] = parameters.doubles("viral_diffusion_coefficient");
 	
-	default_microenvironment_options.track_internalized_substrates_in_each_agent = true; 
+	default_microenvironment_options.track_internalized_substrates_in_each_agent = true;
 	default_microenvironment_options.outer_Dirichlet_conditions = false;
 	microenvironment.diffusion_coefficients[0] = 10; 	// no diffusion
 
-	// initialize BioFVM 
+	// initialize BioFVM
 	initialize_microenvironment(); 	
 
 	// double factor = 1.0;
@@ -163,19 +165,19 @@ void setup_microenvironment( void )
 	// {
 	// 	factor = 1.0 - ((n%20)/20.);
 	// 	bc_vector[0] = factor*38.;
-	// 	microenvironment(n) = bc_vector; 
-	// }	
+	// 	microenvironment(n) = bc_vector;
+	// }
 
 	// std::vector<double> bc_vector( 3 , 42  ); // 21% o2
-	// bc_vector[1] = 1.0; 
-	// bc_vector[2] = 0.0; 
+	// bc_vector[1] = 1.0;
+	// bc_vector[2] = 0.0;
 
 
 	std::vector<double> bc_vector( 1 , 42  );   // 21% o2
 	int n = microenvironment.number_of_voxels() / 2;
-	bc_vector[0] = 500.0; 
-	microenvironment(n+20) = bc_vector; 
-	
+	bc_vector[0] = 500.0;
+	microenvironment(n+20) = bc_vector;
+
 	return; 
 }
 
@@ -199,7 +201,7 @@ Cell index,Cell X,Cell Y,Time of Nucleation,Time of death
 */
 	std::ifstream infile(csv_file);
 
-	static int nSignal = microenvironment.find_density_index( "signal" ); 
+	static int nSignal = microenvironment.find_density_index( "signal" );
 	int idx;
 	double x,y, t_nuc,t_death;
 	char sep;
@@ -221,84 +223,85 @@ Cell index,Cell X,Cell Y,Time of Nucleation,Time of death
 		std::cout << "cell " << idx <<":  x,y= "<< x << "," << y ;
 		std::cout << ", t_nuc= " << t_nuc << ", t_death = " << t_death << std::endl;
 
-		pC = create_cell(); 
+		pC = create_cell();
+		pC->index= idx;
 		pC->assign_position( x,y, 0.0 );
 		pC->set_total_volume(volume);
 
 		pC->phenotype.secretion.set_all_secretion_to_zero(); 
-		// pC->functions.update_phenotype = NULL; 
-		pC->custom_data[ "time_of_death" ] = 0.0; 
-		
-		pC->phenotype.molecular.internalized_total_substrates[ nSignal ] = 1; 
+		// pC->functions.update_phenotype = NULL;
+		pC->custom_data[ "time_of_death" ] = 0.0;
+		pC->custom_data[ "time_of_nucleation" ] = t_nuc;
+		pC->phenotype.molecular.internalized_total_substrates[ nSignal ] = 1;
 	}
 
-	return; 
+	return;
 }
 
 void death_function( Cell* pCell, Phenotype& phenotype, double dt )
 {
-	static int nSignal = microenvironment.find_density_index( "signal" ); 
-	
-	// digest virus particles inside me 
-	static double implicit_Euler_constant = 
+	static int nSignal = microenvironment.find_density_index( "signal" );
+
+	// digest virus particles inside me
+	static double implicit_Euler_constant =
 		(1.0 + dt * parameters.doubles("virus_digestion_rate") );  // todo: check for defined!
 
-	// phenotype.molecular.internalized_total_substrates[nSignal] /= implicit_Euler_constant; 
-	// phenotype.molecular.internalized_total_substrates[nSignal] /= implicit_Euler_constant; 
-	phenotype.molecular.internalized_total_substrates[nSignal] += 1; 
+	// phenotype.molecular.internalized_total_substrates[nSignal] /= implicit_Euler_constant;
+	// phenotype.molecular.internalized_total_substrates[nSignal] /= implicit_Euler_constant;
+	phenotype.molecular.internalized_total_substrates[nSignal] += 1;
 	std::cout << "---------  int_tot_sub= " << phenotype.molecular.internalized_total_substrates[nSignal] << std::endl;
-	
-	if (phenotype.molecular.internalized_total_substrates[nSignal] > 2) 
+
+	if (phenotype.molecular.internalized_total_substrates[nSignal] > 2)
 	{
-		std::cout << "\t\tdie!" << std::endl; 
+		std::cout << "\t\tdie!" << std::endl;
 		pCell->lyse_cell(); // start_death( apoptosis_model_index );
-		pCell->functions.update_phenotype = NULL; 
-		return; 
+		pCell->functions.update_phenotype = NULL;
+		return;
 	}
 
 	// check for contact with a cell
-	// Cell* pTestCell = NULL; 
+	// Cell* pTestCell = NULL;
 	// std::vector<Cell*> neighbors = get_possible_neighbors(pCell);
-	
+
 	// for( int n=0; n < neighbors.size() ; n++ )
 	// {
-	// 	pTestCell = neighbors[n]; 
-	// 	// if it is not me and not a macrophage 
+	// 	pTestCell = neighbors[n];
+	// 	// if it is not me and not a macrophage
 	// 	if( pTestCell != pCell && pTestCell->type != macrophage.type )
 	// 	{
-	// 		// calculate distance to the cell 
+	// 		// calculate distance to the cell
 	// 		std::vector<double> displacement = pTestCell->position;
 	// 		displacement -= pCell->position;
-	// 		double distance = norm( displacement ); 
-			
-	// 		double max_distance = pCell->phenotype.geometry.radius + 
-	// 			pTestCell->phenotype.geometry.radius; 
-	// 		max_distance *= 1.1; 
-			
-	// 		// if it is not a macrophage, test for viral load 
-	// 		// if high viral load, eat it. 
-	// 		if( pTestCell->phenotype.molecular.internalized_total_substrates[nSignal] 
+	// 		double distance = norm( displacement );
+
+	// 		double max_distance = pCell->phenotype.geometry.radius +
+	// 			pTestCell->phenotype.geometry.radius;
+	// 		max_distance *= 1.1;
+
+	// 		// if it is not a macrophage, test for viral load
+	// 		// if high viral load, eat it.
+	// 		if( pTestCell->phenotype.molecular.internalized_total_substrates[nSignal]
 	// 			> parameters.doubles("min_virion_detection_threshold") &&
 	// 			distance < max_distance )
 	// 		{
-	// 			std::cout << "\t\tnom nom nom" << std::endl; 
-	// 			pCell->ingest_cell( pTestCell ); 
+	// 			std::cout << "\t\tnom nom nom" << std::endl;
+	// 			pCell->ingest_cell( pTestCell );
 	// 		}
 	// 	}
 	// }
-	
-	return; 
+
+	return;
 }
 
 std::vector<std::string> my_coloring_function( Cell* pCell )
 {
-	static int nSignal = microenvironment.find_density_index( "death" ); 
-	
-	// start with flow cytometry coloring 
+	static int nSignal = microenvironment.find_density_index( "death" );
+
+	// start with flow cytometry coloring
 	std::vector<std::string> output = false_cell_coloring_cytometry(pCell); 
 
 	std::cout << "--- my_coloring_function i_t_s " <<  pCell->phenotype.molecular.internalized_total_substrates[nSignal] << std::endl;
-		
+
 	if( pCell->phenotype.death.dead == false && pCell->type == 1 )
 	{
 		 output[0] = "black"; 
@@ -313,14 +316,14 @@ std::vector<std::string> death_coloring_function( Cell* pCell )
 	// start with flow cytometry coloring 
 	
 	std::vector<std::string> output = { "magenta" , "black" , "magenta", "black" }; 
-	static int nSignal = microenvironment.find_density_index( "death" ); 
+	static int nSignal = microenvironment.find_density_index( "death" );
 	
 	// static double min_virus = parameters.doubles( "min_virion_count" );
 	// static double max_virus = parameters.doubles( "burst_virion_count" ); 
 	// static double denominator = max_virus - min_virus + 1e-15; 
 
 	std::cout << "--- cell i_t_s " <<  pCell->phenotype.molecular.internalized_total_substrates[nSignal] << std::endl;
-				
+
 	// dead cells 
 	if( pCell->phenotype.death.dead == true )
 	{
@@ -328,49 +331,80 @@ std::vector<std::string> death_coloring_function( Cell* pCell )
 		 output[2] = "darkred"; 
 		 return output; 
 	}
+
 	return output; 
 }
 
-std::vector<Cell*> get_possible_neighbors( Cell* pCell )
+std::vector <std::pair <int, int>> get_all_neighbors( )
 {
-	std::vector<Cell*> neighbors = {}; 
+	std::vector <std::pair<int, int> > neighbors = {};
+    std::string csv_file = parameters.strings( "csv_file2" );
+	std::cout << "-------- reading neighbors " << csv_file << std::endl;
+    std::ifstream infile(csv_file);
 
-	// First check the neighbors in my current voxel
-	std::vector<Cell*>::iterator neighbor;
-	std::vector<Cell*>::iterator end =
-		pCell->get_container()->agent_grid[pCell->get_current_mechanics_voxel_index()].end();
-	for( neighbor = pCell->get_container()->agent_grid[pCell->get_current_mechanics_voxel_index()].begin(); neighbor != end; ++neighbor)
-	{ neighbors.push_back( *neighbor ); }
+    int idx1, idx2;
+	char sep;
 
-	std::vector<int>::iterator neighbor_voxel_index;
-	std::vector<int>::iterator neighbor_voxel_index_end = 
-		pCell->get_container()->underlying_mesh.moore_connected_voxel_indices[pCell->get_current_mechanics_voxel_index()].end();
+	std::string line;
+	std::getline(infile, line);
+	std::cout << "-------- csv header: \n" << line << std::endl;
+	while ((infile >> idx1 >> sep >> idx2 ) && (sep == ','))
+    {
+	    std::cout << "cell " << idx1 <<" is a neighbor of cell "<< idx2 << std::endl ;
+        std::pair<int,int>  neighborCells= std::make_pair(idx1,idx2);
+        neighbors.push_back(neighborCells);
+    }
 
-	for( neighbor_voxel_index = 
-		pCell->get_container()->underlying_mesh.moore_connected_voxel_indices[pCell->get_current_mechanics_voxel_index()].begin();
-		neighbor_voxel_index != neighbor_voxel_index_end; 
-		++neighbor_voxel_index )
-	{
-		if(!is_neighbor_voxel(pCell, pCell->get_container()->underlying_mesh.voxels[pCell->get_current_mechanics_voxel_index()].center, pCell->get_container()->underlying_mesh.voxels[*neighbor_voxel_index].center, *neighbor_voxel_index))
-			continue;
-		end = pCell->get_container()->agent_grid[*neighbor_voxel_index].end();
-		for(neighbor = pCell->get_container()->agent_grid[*neighbor_voxel_index].begin();neighbor != end; ++neighbor)
-		{ neighbors.push_back( *neighbor ); }
-	}
-	
-	return neighbors; 
+	return neighbors;
+}
+
+std::vector <Cell*> get_cell_neighbors(Cell* cell)
+{
+	std::vector<Cell*> neighbors;
+    std::string csv_file = parameters.strings( "csv_file2" );
+    std::cout << "" << std::endl;
+	std::cout << "-------- reading neighbors info from" << csv_file << std::endl;
+    std::ifstream infile(csv_file);
+
+    int idx1, idx2;
+	char sep;
+    int currentIdx;
+	std::string line;
+	std::getline(infile, line);
+	while ((infile >> idx1 >> sep >> idx2 ) && (sep == ','))
+    {
+        currentIdx=-1;
+        if (cell->index == idx1){
+            currentIdx=idx2;
+        }
+        else if (cell->index == idx2){
+            currentIdx=idx1;
+         }
+        if (currentIdx!=-1){ //find actual cell from all_cells
+            for( unsigned int i=0; i < (*all_cells).size(); i++ )
+                {
+                    Cell* pC = (*all_cells)[i];
+                    if (currentIdx == pC->index ){
+                        neighbors.push_back(pC);
+                        break;
+                    }
+                 }
+        }
+    }
+
+	return neighbors;
 }
 
 std::vector<double> integrate_total_substrates( void )
 {
-	// start with 0 vector 
-	std::vector<double> out( microenvironment.number_of_densities() , 0.0 ); 
+	// start with 0 vector
+	std::vector<double> out( microenvironment.number_of_densities() , 0.0 );
 
-	// integrate extracellular substrates 
+	// integrate extracellular substrates
 	for( unsigned int n = 0; n < microenvironment.number_of_voxels() ; n++ )
 	{
-		// out = out + microenvironment(n) * dV(n) 
-		axpy( &out , microenvironment.mesh.voxels[n].volume , microenvironment(n) ); 
+		// out = out + microenvironment(n) * dV(n)
+		axpy( &out , microenvironment.mesh.voxels[n].volume , microenvironment(n) );
 	}
 
 	// inte
@@ -379,6 +413,6 @@ std::vector<double> integrate_total_substrates( void )
 		Cell* pC = (*all_cells)[n];
 		out += pC->phenotype.molecular.internalized_total_substrates;
 	}
-	
-	return out; 
+
+	return out;
 }
