@@ -125,7 +125,7 @@
 	<user_parameters>
 		<random_seed type="int" units="dimensionless" hidden="true">0</random_seed> 
 		<csv_file type="string" description="cell info">test1.csv</csv_file> 
-		<csv_file2 type="string" description="neighbors info">test1.csv</csv_file2> 
+		<csv_file2 type="string" description="neighbors info">test3.csv</csv_file2> 
 		<cell_radius type="double">0.10</cell_radius> 
 	</user_parameters>
 	
