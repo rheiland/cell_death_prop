@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 Cell index,Cell X,Cell Y,Time of Nucleation,Time of death
 0 , 0.0 , 0.0 , -1 , 0
 1 , 1.4048806851758802 , 0.5256522238322116 , -1 , 0
@@ -198,3 +199,11 @@ Cell index,Cell X,Cell Y,Time of Nucleation,Time of death
 196 , 2.095294831603417 , -13.336406546317338 , -1 , 0
 197 , 5.008964940055599 , -12.536357933199488 , -1 , 0
 198 , 7.671718163453211 , -11.108318523545408 , -1 , 0
+=======
+﻿First cell index,Second cell index
+1,2
+2,3
+2,4
+2,5
+5,6
+>>>>>>> add test2
