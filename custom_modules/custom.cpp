@@ -148,7 +148,7 @@ void setup_microenvironment( void )
 	
 	// override BioFVM setup with user parameters 
 	// int dummy_ID = microenvironment.find_density_index( "dummy" ); 
-	int signal_ID = microenvironment.find_density_index( "signal" ); 
+	int signal_ID = microenvironment.find_density_index( "death_signal" ); 
 	// microenvironment.diffusion_coefficients[signal_ID] = parameters.doubles("viral_diffusion_coefficient"); 
 	
 	default_microenvironment_options.track_internalized_substrates_in_each_agent = true; 
@@ -199,7 +199,7 @@ Cell index,Cell X,Cell Y,Time of Nucleation,Time of death
 */
 	std::ifstream infile(csv_file);
 
-	static int nSignal = microenvironment.find_density_index( "signal" ); 
+	static int nSignal = microenvironment.find_density_index( "death_signal" ); 
 	int idx;
 	double x,y, t_nuc,t_death;
 	char sep;
@@ -237,7 +237,7 @@ Cell index,Cell X,Cell Y,Time of Nucleation,Time of death
 
 void death_function( Cell* pCell, Phenotype& phenotype, double dt )
 {
-	static int nSignal = microenvironment.find_density_index( "signal" ); 
+	static int nSignal = microenvironment.find_density_index( "death_signal" ); 
 	
 	// digest virus particles inside me 
 	static double implicit_Euler_constant = 
@@ -292,7 +292,7 @@ void death_function( Cell* pCell, Phenotype& phenotype, double dt )
 
 std::vector<std::string> my_coloring_function( Cell* pCell )
 {
-	static int nSignal = microenvironment.find_density_index( "death" ); 
+	static int nSignal = microenvironment.find_density_index( "death_signal" ); 
 	
 	// start with flow cytometry coloring 
 	std::vector<std::string> output = false_cell_coloring_cytometry(pCell); 
@@ -313,21 +313,29 @@ std::vector<std::string> death_coloring_function( Cell* pCell )
 	// start with flow cytometry coloring 
 	
 	std::vector<std::string> output = { "magenta" , "black" , "magenta", "black" }; 
-	static int nSignal = microenvironment.find_density_index( "death" ); 
+	static int nSignal = microenvironment.find_density_index( "death_signal" ); 
 	
 	// static double min_virus = parameters.doubles( "min_virion_count" );
 	// static double max_virus = parameters.doubles( "burst_virion_count" ); 
 	// static double denominator = max_virus - min_virus + 1e-15; 
 
 	std::cout << "--- cell i_t_s " <<  pCell->phenotype.molecular.internalized_total_substrates[nSignal] << std::endl;
+
+	output[0] = "black"; 
+	if( pCell->phenotype.molecular.internalized_total_substrates[nSignal] == 1 )
+		 output[0] = "red"; 
+	else if( pCell->phenotype.molecular.internalized_total_substrates[nSignal] == 2 )
+		 output[0] = "green"; 
+	else 
+		 output[0] = "blue"; 
 				
 	// dead cells 
-	if( pCell->phenotype.death.dead == true )
-	{
-		 output[0] = "red"; 
-		 output[2] = "darkred"; 
-		 return output; 
-	}
+	// if( pCell->phenotype.death.dead == true )
+	// {
+	// 	 output[0] = "red"; 
+	// 	 output[2] = "darkred"; 
+	// 	 return output; 
+	// }
 	return output; 
 }
 
