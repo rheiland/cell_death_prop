@@ -1,4 +1,4 @@
-# **Cells_Verticles** : a .csv file containing the following information for each cell:
+# **Cells_Vertices** : a .csv file containing the following information for each cell:
 	1. Cell index, from 1 to n, where n is the total number of cells in the simulation
 	2. Cell position in a 2 dimensional plane (x,y)
 	3. Time of nucleation
