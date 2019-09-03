@@ -127,7 +127,7 @@ void create_cell_types( void )
 	// add custom data here, if any 
 	cell_defaults.custom_data.add_variable( "time_of_death", "dimensionless", 0.0 );
 	cell_defaults.custom_data.add_variable( "time_of_nucleation", "dimensionless", 0.0 );
-
+	cell_defaults.custom_data.add_variable("internalized_total_substrates_threshold", 0.0);
 
 	return; 
 }
@@ -233,6 +233,7 @@ Cell index,Cell X,Cell Y,Time of Nucleation,Time of death
 		pC->custom_data[ "time_of_death" ] = 0.0;
 		pC->custom_data[ "time_of_nucleation" ] = t_nuc;
 		pC->phenotype.molecular.internalized_total_substrates[ nSignal ] = 1;
+		pCell->custom_data["internalized_total_substrates_threshold"] = NormalRandom(0.5, 3.0);  //need to change mean and average, random values for now.
 	}
 
 	return;
