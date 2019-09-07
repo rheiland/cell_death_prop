@@ -24,6 +24,9 @@ fig.set_figheight(7)
 #plt.scatter(x, y, s=area, c=tod, alpha=0.5)
 area = 80
 plt.scatter(x, y, s=area, c=tod)
+#plt.colorbar(sc)
+plt.colorbar()
+
 #plt.scatter(x, y, c=tod)
 
 plt.xticks([])
