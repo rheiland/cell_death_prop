@@ -71,12 +71,12 @@
 #include "./death.h"
 
 // declare cell definitions here 
-
 void create_cell_types( void )
 {
+	static int idxDeath = microenvironment.find_density_index( "death_signal" ); 
+
 	SeedRandom( parameters.ints("random_seed") ); // or specify a seed here 
 
-	// housekeeping 
 	initialize_default_cell_definition();
 
 	// Name the default cell type 
@@ -88,10 +88,14 @@ void create_cell_types( void )
 	// cell_defaults.functions.cycle_model = flow_cytometry_separated_cycle_model; 
 
 	// set default_cell_functions; 
-	// cell_defaults.functions.update_phenotype = epithelial_function;
+	cell_defaults.functions.update_phenotype = death_function;
+
+	// release particles at death 
+	cell_defaults.phenotype.molecular.fraction_released_at_death[ idxDeath ]= 1.0; 
+	cell_defaults.phenotype.molecular.fraction_released_at_death[ idxDeath ]= 0.1; 
+	cell_defaults.phenotype.molecular.fraction_released_at_death[ idxDeath ]= 0.5; 
 
 	// needed for a 2-D simulation: 
-	
 	cell_defaults.functions.set_orientation = up_orientation; 
 	cell_defaults.phenotype.geometry.polarity = 1.0;
 	cell_defaults.phenotype.motility.restrict_to_2D = true; 
@@ -132,6 +136,8 @@ void create_cell_types( void )
 
 void setup_microenvironment( void )
 {
+	static int idxDeath = microenvironment.find_density_index( "death_signal" ); 
+
 	// make sure to override and go back to 2D 
 	if( default_microenvironment_options.simulate_2D == false )
 	{
@@ -140,8 +146,7 @@ void setup_microenvironment( void )
 	}
 	
 	// override BioFVM setup with user parameters 
-	int signal_ID = microenvironment.find_density_index( "death_signal" ); 
-	microenvironment.diffusion_coefficients[signal_ID] = parameters.doubles("signal_diffusion_coefficient"); 
+	microenvironment.diffusion_coefficients[idxDeath] = parameters.doubles("signal_diffusion_coefficient"); 
 	
 	initialize_microenvironment(); 	
 
@@ -173,7 +178,7 @@ Cell index,Cell X,Cell Y,Time of Nucleation,Time of death
 */
 	std::ifstream infile(csv_file);
 
-	static int nSignal = microenvironment.find_density_index( "death_signal" ); 
+	static int idxDeath = microenvironment.find_density_index( "death_signal" ); 
 	int idx;
 	double x,y, t_nuc,t_death;
 	char sep;
@@ -203,30 +208,10 @@ Cell index,Cell X,Cell Y,Time of Nucleation,Time of death
 		// pC->functions.update_phenotype = NULL; 
 		pC->custom_data[ "time_of_death" ] = 0.0; 
 		
-		pC->phenotype.molecular.internalized_total_substrates[ nSignal ] = 1; 
-	}
-	return; 
-}
-
-void death_function0( Cell* pCell, Phenotype& phenotype, double dt )
-{
-	static int nSignal = microenvironment.find_density_index( "death_signal" ); 
-	
-	// digest virus particles inside me 
-	static double implicit_Euler_constant = 
-		(1.0 + dt * parameters.doubles("virus_digestion_rate") );  // todo: check for defined!
-
-	// phenotype.molecular.internalized_total_substrates[nSignal] /= implicit_Euler_constant; 
-	// phenotype.molecular.internalized_total_substrates[nSignal] /= implicit_Euler_constant; 
-	phenotype.molecular.internalized_total_substrates[nSignal] += 1; 
-	std::cout << "---------  int_tot_sub= " << phenotype.molecular.internalized_total_substrates[nSignal] << std::endl;
-	
-	if (phenotype.molecular.internalized_total_substrates[nSignal] > 2) 
-	{
-		std::cout << "\t\tdie!" << std::endl; 
-		pCell->lyse_cell(); // start_death( apoptosis_model_index );
-		pCell->functions.update_phenotype = NULL; 
-		return; 
+		if (idx == 0)
+			pC->phenotype.molecular.internalized_total_substrates[ idxDeath ] = 19; 
+		else
+			pC->phenotype.molecular.internalized_total_substrates[ idxDeath ] = 0; 
 	}
 	return; 
 }
@@ -239,7 +224,9 @@ void death_function( Cell* pCell, Phenotype& phenotype, double dt )
 	// compare against threshold. Should I commit apoptosis? 
 	double signal = phenotype.molecular.internalized_total_substrates[idxDeath]; 
 	std::cout << "-------death_function:  i_t_s= " << signal << std::endl;
-	if( signal >= parameters.doubles("death_threshold") )
+		// pCell->lyse_cell(); // start_death( apoptosis_model_index );
+	// if( signal >= parameters.doubles("death_threshold") )
+	if( signal >= 15 )
 	{
 		std::cout << "\t\tdie!" << std::endl; 
 		pCell->lyse_cell(); // start_death( apoptosis_model_index );
@@ -261,20 +248,20 @@ std::vector<std::string> death_coloring_function( Cell* pCell )
 {
 	// start with flow cytometry coloring 
 	std::vector<std::string> output = { "magenta" , "black" , "magenta", "black" }; 
-	static int nSignal = microenvironment.find_density_index( "death_signal" ); 
+	static int idxDeath = microenvironment.find_density_index( "death_signal" ); 
 	
 	// static double min_virus = parameters.doubles( "min_virion_count" );
 	// static double max_virus = parameters.doubles( "burst_virion_count" ); 
 	// static double denominator = max_virus - min_virus + 1e-15; 
 
-	std::cout << "--- death_coloring:  cell i_t_s " <<  pCell->phenotype.molecular.internalized_total_substrates[nSignal] << std::endl;
+	std::cout << "--- death_coloring:  cell i_t_s " <<  pCell->phenotype.molecular.internalized_total_substrates[idxDeath] << std::endl;
 	output[0] = "cyan"; 
 	output[1] = "cyan"; 
-	if( pCell->phenotype.molecular.internalized_total_substrates[nSignal] == 1 ) {
+	if( pCell->phenotype.molecular.internalized_total_substrates[idxDeath] == 1 ) {
 		 output[0] = "white"; 
 		 output[1] = "white"; 
 	}
-	else if( pCell->phenotype.molecular.internalized_total_substrates[nSignal] == 2 ) {
+	else if( pCell->phenotype.molecular.internalized_total_substrates[idxDeath] == 2 ) {
 		 output[0] = "green"; 
 		 output[1] = "green"; 
 	}
