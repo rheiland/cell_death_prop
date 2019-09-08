@@ -77,8 +77,7 @@
 #include "./modules/PhysiCell_standard_modules.h" 
 
 // put custom code modules here! 
-
-#include "./custom_modules/custom.h" 
+#include "./custom_modules/death.h" 
 	
 using namespace BioFVM;
 using namespace PhysiCell;
@@ -196,7 +195,7 @@ int main( int argc, char* argv[] )
 					PhysiCell_globals.next_SVG_save_time  += PhysiCell_settings.SVG_save_interval;
 				}
 				
-				// std::cout << "Total substrates " << integrate_total_substrates() << std::endl; 
+				std::cout << "  >>>  Total substrates " << integrate_total_substrates() << "\n\n"; 
 			}
 
 			// update the microenvironment

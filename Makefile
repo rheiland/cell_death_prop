@@ -45,7 +45,7 @@ PhysiCell_pugixml.o PhysiCell_settings.o
 
 # put your custom objects here (they should be in the custom_modules directory)
 
-PhysiCell_custom_module_OBJECTS := custom.o
+PhysiCell_custom_module_OBJECTS := death.o
 
 pugixml_OBJECTS := pugixml.o
 
@@ -134,8 +134,8 @@ PhysiCell_settings.o: ./modules/PhysiCell_settings.cpp
 	
 # user-defined PhysiCell modules
 
-custom.o: ./custom_modules/custom.cpp 
-	$(COMPILE_COMMAND) -c ./custom_modules/custom.cpp
+death.o: ./custom_modules/death.cpp 
+	$(COMPILE_COMMAND) -c ./custom_modules/death.cpp
 
 # cleanup
 
