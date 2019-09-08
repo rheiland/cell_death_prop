@@ -60,7 +60,7 @@
 		<cell_radius type="double">0.40</cell_radius> 
 		<death_threshold type="double">10</death_threshold> 
 		<death_rate type="double">2</death_rate> 
-		<signal_diffusion_coefficient type="double" units="micron^2/min" description="diffusion coefficient for death signal particles">1e3</signal_diffusion_coefficient>
+		<signal_diffusion_coefficient type="double" units="micron^2/min" description="diffusion coefficient for death signal particles">0.1</signal_diffusion_coefficient>
 	</user_parameters>
 	
 	
