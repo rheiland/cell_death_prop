@@ -95,6 +95,9 @@ void create_cell_types( void )
 	cell_defaults.phenotype.molecular.fraction_released_at_death[ idxDeath ]= 0.1; 
 	cell_defaults.phenotype.molecular.fraction_released_at_death[ idxDeath ]= 0.5; 
 
+	cell_defaults.phenotype.secretion.uptake_rates[idxDeath] = parameters.doubles("signal_internalization_rate"); 
+		
+
 	// needed for a 2-D simulation: 
 	cell_defaults.functions.set_orientation = up_orientation; 
 	cell_defaults.phenotype.geometry.polarity = 1.0;
@@ -183,20 +186,25 @@ Cell index,Cell X,Cell Y,Time of Nucleation,Time of death
 	double x,y, t_nuc,t_death;
 	char sep;
 
+	// Read a title header
 	std::string line;
 	std::getline(infile, line);
 	std::cout << "-------- csv header: \n" << line << std::endl;
 	// while (std::getline(infile, line) && (c == ',') )
 	static double radius = parameters.doubles( "cell_radius" );
 	double volume = 4./3 * PhysiCell_constants::pi * radius*radius*radius;
-	while ((infile >> idx >> sep >> x >> sep >> y >> sep >> t_nuc >> sep >> t_death) && (sep == ','))
-	{
+
 /*
 Cell index,Cell X,Cell Y,Time of Nucleation,Time of death
 1,2.25,6,,3
 2,3.3,4.25,1,1
 ...
 */
+	int csv_format = 1;
+	csv_format = 2;
+	if (csv_format == 1)
+	  while ((infile >> idx >> sep >> x >> sep >> y >> sep >> t_nuc >> sep >> t_death) && (sep == ','))
+	  {
 		std::cout << "cell " << idx <<":  x,y= "<< x << "," << y ;
 		std::cout << ", t_nuc= " << t_nuc << ", t_death = " << t_death << std::endl;
 
@@ -212,6 +220,72 @@ Cell index,Cell X,Cell Y,Time of Nucleation,Time of death
 			pC->phenotype.molecular.internalized_total_substrates[ idxDeath ] = 19; 
 		else
 			pC->phenotype.molecular.internalized_total_substrates[ idxDeath ] = 0; 
+	  }
+	else {
+		int num_cells;
+	    infile >> num_cells;
+		std::cout << "num_cells " << num_cells << std::endl;
+		for (int idx=0; idx<num_cells; idx++)
+		{
+	  		infile >> idx >> sep >> x >> sep >> y >> sep >> t_nuc >> sep >> t_death; // && (sep == ',');
+			std::cout << "cell " << idx <<":  x,y= "<< x << "," << y ;
+			std::cout << ", t_nuc= " << t_nuc << ", t_death = " << t_death << std::endl;
+
+			pC = create_cell(); 
+			pC->assign_position( x,y, 0.0 );
+			pC->set_total_volume(volume);
+
+			pC->phenotype.secretion.set_all_secretion_to_zero(); 
+			// pC->functions.update_phenotype = NULL; 
+			pC->custom_data[ "time_of_death" ] = 0.0; 
+			
+			if (idx == 0)
+				pC->phenotype.molecular.internalized_total_substrates[ idxDeath ] = 19; 
+			else
+				pC->phenotype.molecular.internalized_total_substrates[ idxDeath ] = 0; 
+		}
+		std::cout << "-------- parse adj lists (nbrs of cells): " << std::endl;
+		std::string s;
+		while (getline(infile, s)) {
+			std::cout << s << std::endl;
+			std::istringstream ss(s);
+			int nbrIdx = 0;
+			int parentIdx;
+			while (ss) {
+                std::string sval;
+                if (!getline(ss, sval, ','))
+                    break;
+                try {
+                    // record.push_back(stof(line));
+					if (nbrIdx == 0) {
+					  parentIdx = stoi(sval);
+                      std::cout << "for cell  " << parentIdx << std::endl; 
+					  nbrIdx++;
+					  continue;  // skip over cell itself; just want nbrs
+					}
+					nbrIdx++;
+					// pCell_1->state.neighbors.push_back( pCell_2 ); }
+					(*all_cells)[parentIdx]->state.neighbors.push_back( (*all_cells)[nbrIdx] ); 
+                    std::cout << "nbr " << nbrIdx << " = " << stoi(sval) << std::endl; 
+                }
+                catch (const std::invalid_argument e) {
+                    // cout << "NaN found in file " << inputFileName << " line " << l
+                    std::cout << "NaN found in file " << std::endl;
+                    e.what();
+                }
+            }
+		}
+	}
+
+	// Validate all cell neighbors
+	std::cout << "---------------- Validate all cell neighbors\n";
+	for( unsigned int idx=0; idx < (*all_cells).size(); idx++ )
+	{
+		Cell* pC = (*all_cells)[idx];
+        std::cout << "  cell x,y " << pC->position[0] << " , " << pC->position[1] << std::endl; 
+		// for ((*all_cells)[parentIdx]->state.neighbors.push_back( (*all_cells)[nbrIdx] ); 
+		for( int jdx=0 ; jdx < pC->state.neighbors.size() ; jdx++ )
+        	std::cout << "     nbr x,y " << pC->state.neighbors[jdx]->position[0] << " , " << pC->state.neighbors[jdx]->position[1] << std::endl; 
 	}
 	return; 
 }
