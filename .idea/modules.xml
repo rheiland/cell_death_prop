@@ -2,7 +2,6 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/cell_death_prop.iml" filepath="$PROJECT_DIR$/.idea/cell_death_prop.iml" />
       <module fileurl="file://$PROJECT_DIR$/cell_death_prop.iml" filepath="$PROJECT_DIR$/cell_death_prop.iml" />
     </modules>
   </component>
