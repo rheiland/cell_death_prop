@@ -84,6 +84,11 @@ void create_cell_types( void )
 	cell_defaults.name = "my cell"; 
 	cell_defaults.phenotype.mechanics.cell_cell_adhesion_strength = 0.0; 
 
+
+	// make sure the defaults are self-consistent.  (rwh: do this BEFORE others)
+	cell_defaults.phenotype.secretion.sync_to_microenvironment( &microenvironment );
+	cell_defaults.phenotype.molecular.sync_to_microenvironment( &microenvironment );
+
 	// set default cell cycle model 
 	// cell_defaults.functions.cycle_model = flow_cytometry_separated_cycle_model; 
 
@@ -91,9 +96,12 @@ void create_cell_types( void )
 	cell_defaults.functions.update_phenotype = death_function;
 
 	// release particles at death 
-	cell_defaults.phenotype.molecular.fraction_released_at_death[ idxDeath ]= 1.0; 
-	cell_defaults.phenotype.molecular.fraction_released_at_death[ idxDeath ]= 0.1; 
-	cell_defaults.phenotype.molecular.fraction_released_at_death[ idxDeath ]= 0.5; 
+	// cell_defaults.phenotype.molecular.fraction_released_at_death[ idxDeath ]= 1.0; 
+
+	std::cout << "cell_defaults.phenotype.molecular.fraction_released_at_death= " << cell_defaults.phenotype.molecular.fraction_released_at_death.size() << std::endl;
+	cell_defaults.phenotype.molecular.fraction_released_at_death[ 0 ]= 1.0; 
+	// cell_defaults.phenotype.molecular.fraction_released_at_death[ idxDeath ]= 0.1; 
+	// cell_defaults.phenotype.molecular.fraction_released_at_death[ idxDeath ]= 0.5; 
 
 	cell_defaults.phenotype.secretion.uptake_rates[idxDeath] = parameters.doubles("signal_internalization_rate"); 
 		
@@ -104,9 +112,8 @@ void create_cell_types( void )
 	cell_defaults.phenotype.motility.restrict_to_2D = true; 
 
 	// make sure the defaults are self-consistent. 
-
-	cell_defaults.phenotype.secretion.sync_to_microenvironment( &microenvironment );
-	cell_defaults.phenotype.molecular.sync_to_microenvironment( &microenvironment );
+	// cell_defaults.phenotype.secretion.sync_to_microenvironment( &microenvironment );
+	// cell_defaults.phenotype.molecular.sync_to_microenvironment( &microenvironment );
 
 	cell_defaults.functions.update_phenotype = death_function; 
 	cell_defaults.phenotype.sync_to_functions( cell_defaults.functions ); 
