@@ -258,27 +258,29 @@ Cell index,Cell X,Cell Y,Time of Nucleation,Time of death
 		}
 		std::cout << "-------- parse adj lists (nbrs of cells): " << std::endl;
 		std::string s;
+		bool parent_cell = true;
+		int parentIdx = -998;
+		int nbrIdx = -999;
 		while (getline(infile, s)) {
 			std::cout << s << std::endl;
 			std::istringstream ss(s);
-			int nbrIdx = 0;
-			int parentIdx;
+			parent_cell = true;
 			while (ss) {
                 std::string sval;
                 if (!getline(ss, sval, ','))
                     break;
                 try {
                     // record.push_back(stof(line));
-					if (nbrIdx == 0) {
+					if (parent_cell) {
 					  parentIdx = stoi(sval);
                       std::cout << "for cell  " << parentIdx << std::endl; 
-					  nbrIdx++;
+				 	  parent_cell = false;
 					  continue;  // skip over cell itself; just want nbrs
 					}
-					nbrIdx++;
+					nbrIdx = stoi(sval);
 					// pCell_1->state.neighbors.push_back( pCell_2 ); }
 					(*all_cells)[parentIdx]->state.neighbors.push_back( (*all_cells)[nbrIdx] ); 
-                    std::cout << "nbr " << nbrIdx << " = " << stoi(sval) << std::endl; 
+                    std::cout << "nbr " << nbrIdx << " = " << nbrIdx << std::endl; 
                 }
                 catch (const std::invalid_argument e) {
                     // cout << "NaN found in file " << inputFileName << " line " << l
