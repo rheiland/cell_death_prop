@@ -98,42 +98,38 @@ void create_cell_types( void )
 	// release particles at death 
 	// cell_defaults.phenotype.molecular.fraction_released_at_death[ idxDeath ]= 1.0; 
 
-	std::cout << "cell_defaults.phenotype.molecular.fraction_released_at_death= " << cell_defaults.phenotype.molecular.fraction_released_at_death.size() << std::endl;
-	cell_defaults.phenotype.molecular.fraction_released_at_death[ 0 ]= 1.0; 
+	std::cout << "cell_defaults.phenotype.molecular.fraction_released_at_death.size()= " << cell_defaults.phenotype.molecular.fraction_released_at_death.size() << std::endl;
+	cell_defaults.phenotype.molecular.fraction_released_at_death[ idxDeath ]= 1.0; 
 	// cell_defaults.phenotype.molecular.fraction_released_at_death[ idxDeath ]= 0.1; 
 	// cell_defaults.phenotype.molecular.fraction_released_at_death[ idxDeath ]= 0.5; 
 
 	cell_defaults.phenotype.secretion.uptake_rates[idxDeath] = parameters.doubles("signal_internalization_rate"); 
 		
-
 	// needed for a 2-D simulation: 
 	cell_defaults.functions.set_orientation = up_orientation; 
 	cell_defaults.phenotype.geometry.polarity = 1.0;
 	cell_defaults.phenotype.motility.restrict_to_2D = true; 
 
-	// make sure the defaults are self-consistent. 
-	// cell_defaults.phenotype.secretion.sync_to_microenvironment( &microenvironment );
-	// cell_defaults.phenotype.molecular.sync_to_microenvironment( &microenvironment );
 
 	cell_defaults.functions.update_phenotype = death_function; 
 	cell_defaults.phenotype.sync_to_functions( cell_defaults.functions ); 
 
-	// set the rate terms in the default phenotype 
 
-	// first find index for a few key variables. 
-	int apoptosis_model_index = cell_defaults.phenotype.death.find_death_model_index( "Apoptosis" );
-	int necrosis_model_index = cell_defaults.phenotype.death.find_death_model_index( "Necrosis" );
-	// int virus_index = microenvironment.find_density_index( "virus" ); 
+	// set the rate terms in the default phenotype 
 
 	// int G0G1_index = flow_cytometry_separated_cycle_model.find_phase_index( PhysiCell_constants::G0G1_phase );
 	// int S_index = flow_cytometry_separated_cycle_model.find_phase_index( PhysiCell_constants::S_phase );
 
-	// initially no death 
+	// no death (we'll lyse cell ourself in the custom 'death_function')
+	int apoptosis_model_index = cell_defaults.phenotype.death.find_death_model_index( "Apoptosis" );
+	int necrosis_model_index = cell_defaults.phenotype.death.find_death_model_index( "Necrosis" );
 	cell_defaults.phenotype.death.rates[apoptosis_model_index] = 0.0; 
 	cell_defaults.phenotype.death.rates[necrosis_model_index] = 0.0; 
 
-	// initially no birth 
-	// cell_defaults.phenotype.cycle.data.transition_rate(G0G1_index, S_index ) = 0.0 ; 
+	// no birth (turn off proliferation)
+	int cycle_start_index = live.find_phase_index( PhysiCell_constants::live ); 
+	int cycle_end_index = live.find_phase_index( PhysiCell_constants::live ); 
+	cell_defaults.phenotype.cycle.data.transition_rate( cycle_start_index , cycle_end_index ) = 0.0; 
 
 	// not motile 
 	cell_defaults.phenotype.motility.is_motile = false; 
@@ -201,15 +197,22 @@ Cell index,Cell X,Cell Y,Time of Nucleation,Time of death
 	static double radius = parameters.doubles( "cell_radius" );
 	double volume = 4./3 * PhysiCell_constants::pi * radius*radius*radius;
 
+
+	int csv_format = 1;
 /*
 Cell index,Cell X,Cell Y,Time of Nucleation,Time of death
 1,2.25,6,,3
 2,3.3,4.25,1,1
 ...
 */
-	int csv_format = 1;
-	csv_format = 2;
-	if (csv_format == 1)
+//	csv_format = 2;
+
+	bool new_csv_format = false;
+	if (parameters.bools( "new_csv_format" ))
+		new_csv_format = true;
+	std::cout << "new_csv_format = " << new_csv_format << std::endl;
+	if (!new_csv_format) {
+	  std::cout << "----- reading OLD .csv format = " << new_csv_format << std::endl;
 	  while ((infile >> idx >> sep >> x >> sep >> y >> sep >> t_nuc >> sep >> t_death) && (sep == ','))
 	  {
 		std::cout << "cell " << idx <<":  x,y= "<< x << "," << y ;
@@ -228,14 +231,16 @@ Cell index,Cell X,Cell Y,Time of Nucleation,Time of death
 		else
 			pC->phenotype.molecular.internalized_total_substrates[ idxDeath ] = 0; 
 	  }
-	else {
-		int num_cells;
+	}
+	else {  // new format: 2nd line is # of cells, cell lines: duplicate cell Idx in 0th and 1st column; append adjacency list)
+	    std::cout << "----- reading NEW .csv format = " << new_csv_format << std::endl;
+		int idx1,idx2,num_cells;
 	    infile >> num_cells;
 		std::cout << "num_cells " << num_cells << std::endl;
 		for (int idx=0; idx<num_cells; idx++)
 		{
-	  		infile >> idx >> sep >> x >> sep >> y >> sep >> t_nuc >> sep >> t_death; // && (sep == ',');
-			std::cout << "cell " << idx <<":  x,y= "<< x << "," << y ;
+			infile >> idx1 >> sep >> idx2 >> sep >> x >> sep >> y >> sep >> t_nuc >> sep >> t_death; // && (sep == ',');
+			std::cout << "cell " << idx1 <<":  x,y= "<< x << "," << y ;
 			std::cout << ", t_nuc= " << t_nuc << ", t_death = " << t_death << std::endl;
 
 			pC = create_cell(); 
