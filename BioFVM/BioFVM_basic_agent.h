@@ -85,7 +85,7 @@ class Basic_Agent
 	void update_voxel_index();
 
 	/* new for internalized substrates in 1.5.0 */ 
-	std::vector<double> * internalized_substrates; 
+	std::vector<double> * internalized_substrates;  
 	std::vector<double> * fraction_released_at_death; 
 	std::vector<double> * fraction_transferred_when_ingested; 
 	void release_internalized_substrates( void ); 

@@ -117,8 +117,6 @@ int main( int argc, char* argv[] )
 
 	setup_tissue();
 
-	get_all_neighbors();
-
 	/* Users typically stop modifying here. END USERMODS */ 
 	
 	// set MultiCellDS save options 
