@@ -3,9 +3,9 @@
 <PhysiCell_settings version="devel-version">
 	<domain>
 		<x_min>-15</x_min>
-		<x_max>15</x_max>
+		<x_max>2600</x_max>
 		<y_min>-15</y_min>
-		<y_max>15</y_max>
+		<y_max>2600</y_max>
 		<z_min>-10</z_min>
 		<z_max>10</z_max>
 		<dx>1</dx>
@@ -56,8 +56,8 @@
 	
 	<user_parameters>
 		<random_seed type="int" units="dimensionless" hidden="true">0</random_seed> 
-		<csv_file type="string" description="cell info">test5.csv</csv_file> 
-		<csv_file2 type="string" description="cell info">test5b.csv</csv_file2> 
+		<csv_file type="string" description="cell info">test4.csv</csv_file> 
+		<csv_file2 type="string" description="cell info">test4b.csv</csv_file2> 
 		<cell_radius type="double">0.40</cell_radius> 
 		<death_threshold type="double">10</death_threshold>  
 		<death_rate type="double">2</death_rate>

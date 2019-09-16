@@ -185,7 +185,7 @@ void setup_tissue(void)
 	std::string line2;
 	std::getline(infile, line);
 	std::getline(infile2, line2);
-	std::cout << "-------- csv header: \n" << line << std::endl;
+	std::cout << "-------- csv header: \n" << "id" << line << std::endl;
 	static double radius = parameters.doubles("cell_radius");
 	double volume = 4. / 3 * PhysiCell_constants::pi * radius * radius * radius;
 	while ((infile >> idx >> sep >> x >> sep >> y >> sep >> t_nuc >> sep >> t_death) && (sep == ',') && std::getline(infile2, line2))
@@ -218,7 +218,7 @@ void setup_tissue(void)
 		
 		//parse neighbors
 		std::istringstream ss(line2);
-		//std::cout << line2 << std::endl;
+		std::cout << line2 << std::endl;
 		neiIdx = -1;
 		while (ss) {
 			std::string neighbor;
@@ -230,6 +230,7 @@ void setup_tissue(void)
 					idx2 = stoi(neighbor);
 					std::cout << "Neighbors for cell  " << idx2 << std::endl;
 					neiIdx++;
+					std::getline(ss, neighbor, '"');  //for experiment real data only, to ignore "
 					continue;
 				}
 				else {
@@ -250,7 +251,6 @@ void setup_tissue(void)
 
 void death_function(Cell* pCell, Phenotype& phenotype, double dt)
 {
-
 	static int idxDeath = microenvironment.find_density_index("death_signal");
 	double signal = phenotype.molecular.internalized_total_substrates[idxDeath];
 	double nuc_time = pCell->custom_data["time_of_nucleation"];
@@ -341,7 +341,7 @@ std::vector<std::string> death_coloring_function(Cell* pCell)
 	// static double max_virus = parameters.doubles( "burst_virion_count" ); 
 	// static double denominator = max_virus - min_virus + 1e-15; 
 
-	std::cout << "--- death_coloring:  cell i_t_s " << pCell->phenotype.molecular.internalized_total_substrates[idxDeath] << std::endl;
+	std::cout << "cell: " << pCell->index <<"--- death_coloring:  cell i_t_s " << pCell->phenotype.molecular.internalized_total_substrates[idxDeath] << std::endl;
 	output[0] = "cyan";
 	output[1] = "cyan";
 	if (pCell->phenotype.molecular.internalized_total_substrates[idxDeath] == 1) {
