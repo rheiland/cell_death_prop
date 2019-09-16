@@ -3,19 +3,19 @@
 <PhysiCell_settings version="devel-version">
 	<domain>
 		<x_min>0</x_min>
-		<x_max>3000</x_max>
+		<x_max>2600</x_max>
 		<y_min>0</y_min>
-		<y_max>3000</y_max>
+		<y_max>2600</y_max>
 		<z_min>-10</z_min>
 		<z_max>10</z_max>
-		<dx>20</dx>
-		<dy>20</dy>
-		<dz>20</dz>
+		<dx>50</dx>
+		<dy>50</dy>
+		<dz>50</dz>
 		<use_2D>true</use_2D>
 	</domain>
 	
 	<overall>
-		<max_time units="min">1440</max_time> 
+		<max_time units="min">500</max_time> 
 		<time_units>min</time_units>
 		<space_units>micron</space_units>
 	</overall>
@@ -28,12 +28,12 @@
 		<folder>output</folder> <!-- use . for root --> 
 
 		<full_data>
-			<interval units="min">30</interval>
+			<interval units="min">5</interval>
 			<enable>true</enable>
 		</full_data>
 		
 		<SVG>
-			<interval units="min">30</interval>
+			<interval units="min">5</interval>
 			<enable>true</enable>
 		</SVG>
 	</save>
