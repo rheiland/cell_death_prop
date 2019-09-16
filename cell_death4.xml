@@ -2,20 +2,20 @@
 
 <PhysiCell_settings version="devel-version">
 	<domain>
-		<x_min>-15</x_min>
-		<x_max>2600</x_max>
-		<y_min>-15</y_min>
-		<y_max>2600</y_max>
+		<x_min>0</x_min>
+		<x_max>3000</x_max>
+		<y_min>0</y_min>
+		<y_max>3000</y_max>
 		<z_min>-10</z_min>
 		<z_max>10</z_max>
-		<dx>1</dx>
-		<dy>1</dy>
-		<dz>1</dz>
+		<dx>20</dx>
+		<dy>20</dy>
+		<dz>20</dz>
 		<use_2D>true</use_2D>
 	</domain>
 	
 	<overall>
-		<max_time units="min">800</max_time> 
+		<max_time units="min">1440</max_time> 
 		<time_units>min</time_units>
 		<space_units>micron</space_units>
 	</overall>
@@ -28,12 +28,12 @@
 		<folder>output</folder> <!-- use . for root --> 
 
 		<full_data>
-			<interval units="min">10</interval>
+			<interval units="min">30</interval>
 			<enable>true</enable>
 		</full_data>
 		
 		<SVG>
-			<interval units="min">10</interval>
+			<interval units="min">30</interval>
 			<enable>true</enable>
 		</SVG>
 	</save>
@@ -41,7 +41,7 @@
 	<microenvironment_setup>
 		<variable name="death_signal" units="particles/micron^3" ID="0">
 			<physical_parameter_set>
-				<diffusion_coefficient units="micron^2/min">0.001</diffusion_coefficient>
+				<diffusion_coefficient units="micron^2/min">10.0</diffusion_coefficient>
 				<decay_rate units="1/min">0</decay_rate>  
 			</physical_parameter_set>
 			<initial_condition units="particles/micron^3">0</initial_condition>
@@ -58,11 +58,11 @@
 		<random_seed type="int" units="dimensionless" hidden="true">0</random_seed> 
 		<csv_file type="string" description="cell info">test4.csv</csv_file> 
 		<csv_file2 type="string" description="cell info">test4b.csv</csv_file2> 
-		<cell_radius type="double">0.40</cell_radius> 
-		<death_threshold type="double">10</death_threshold>  
-		<death_rate type="double">2</death_rate>
+		<cell_radius type="double">20.0</cell_radius> 
+		<death_threshold type="double">0.7</death_threshold> 
+		<death_rate type="double">3</death_rate> 
 		<signal_internalization_rate type="double" units="1/min" description="internalization rate for death particles">10</signal_internalization_rate> 
-		<signal_diffusion_coefficient type="double" units="micron^2/min" description="diffusion coefficient for death signal particles">0.1</signal_diffusion_coefficient>
+		<signal_diffusion_coefficient type="double" units="micron^2/min" description="diffusion coefficient for death signal particles">200.0</signal_diffusion_coefficient>
 	</user_parameters>
 	
 	

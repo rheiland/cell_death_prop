@@ -205,16 +205,13 @@ void setup_tissue(void)
 		pC->set_total_volume(volume);
 
 		pC->phenotype.secretion.set_all_secretion_to_zero();
-		// pC->functions.update_phenotype = NULL;
 		pC->custom_data["time_of_death"] = 0.0;
 		pC->custom_data["time_of_nucleation"] = t_nuc;
 		pC->phenotype.molecular.internalized_total_substrates[idxDeath] = 0;
 
 		//***just for test***
-		if (idx == 4)
-			pC->phenotype.molecular.internalized_total_substrates[idxDeath] = 5;
-		//if (idx == 6)
-		//	pC->phenotype.molecular.internalized_total_substrates[idxDeath] = 11;
+		if (idx >=90 && idx <= 100)
+			pC->phenotype.molecular.internalized_total_substrates[idxDeath] = 1;
 		
 		//parse neighbors
 		std::istringstream ss(line2);
