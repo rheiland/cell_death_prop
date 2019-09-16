@@ -17,32 +17,20 @@
   </text>
   <text x="0.375" y="1.725"
    font-family="Arial" font-size="0.7125" fill="black" >
-   5 agents
+   2 agents
   </text>
  <g id="tissue" 
     transform="translate(0,32.1) scale(1,-1)">
   <g id="ECM">
   </g>
   <g id="cells">
-   <g id="cell0">
-  <circle cx="5" cy="15" r="0.7" stroke-width="0.5" stroke="red" fill="red"/>
-  <circle cx="5" cy="15" r="0.420337" stroke-width="0.5" stroke="black" fill="magenta"/>
-   </g>
-   <g id="cell1">
-  <circle cx="10" cy="15" r="0.7" stroke-width="0.5" stroke="red" fill="red"/>
-  <circle cx="10" cy="15" r="0.420337" stroke-width="0.5" stroke="black" fill="magenta"/>
-   </g>
-   <g id="cell2">
-  <circle cx="15" cy="25" r="0.7" stroke-width="0.5" stroke="red" fill="red"/>
-  <circle cx="15" cy="25" r="0.420337" stroke-width="0.5" stroke="black" fill="magenta"/>
-   </g>
    <g id="cell3">
-  <circle cx="14" cy="5" r="0.7" stroke-width="0.5" stroke="red" fill="red"/>
-  <circle cx="14" cy="5" r="0.420337" stroke-width="0.5" stroke="black" fill="magenta"/>
+  <circle cx="14" cy="5" r="0.4" stroke-width="0.5" stroke="red" fill="red"/>
+  <circle cx="14" cy="5" r="0.240192" stroke-width="0.5" stroke="black" fill="magenta"/>
    </g>
    <g id="cell6">
-  <circle cx="25" cy="15" r="0.7" stroke-width="0.5" stroke="red" fill="red"/>
-  <circle cx="25" cy="15" r="0.420337" stroke-width="0.5" stroke="black" fill="magenta"/>
+  <circle cx="25" cy="15" r="0.4" stroke-width="0.5" stroke="red" fill="red"/>
+  <circle cx="25" cy="15" r="0.240192" stroke-width="0.5" stroke="black" fill="magenta"/>
    </g>
   </g>
  </g>
@@ -53,7 +41,7 @@
   </text>
   <text x="0.75" y="31.35"
    font-family="Arial" font-size="0.5625" fill="black" >
-   0 days, 0 hours, 0 minutes, and 3.3879 seconds
+   0 days, 0 hours, 0 minutes, and 8.4742 seconds
   </text>
   <rect x="0" y="2.1" width="30" height="30" stroke-width="0.06" stroke="rgb(0,0,0)" fill="none"/>
 </svg>

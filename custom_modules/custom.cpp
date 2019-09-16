@@ -264,13 +264,19 @@ void death_function(Cell* pCell, Phenotype& phenotype, double dt)
 		pCell->lyse_cell(); // start_death( apoptosis_model_index )
 		return;
 	}
-	else { //absorb particles
+	else if (signal >= parameters.doubles("min_death_count"))
+	{
+		double new_death = parameters.doubles("death_rate");
+		new_death *= dt;
+		std::cout << "cell " << pCell->index << "-------death_function:  increasing death= " << new_death << std::endl;
+		phenotype.molecular.internalized_total_substrates[idxDeath] += new_death;
+	}
+		//absorb particles
 		//double to_absorb = get_particles_from_surounding(pCell); //to complete function, checks the amount of particles in the cell's environment
 		//double to_absorb = 0.1 * signal;
 		//phenotype.molecular.internalized_total_substrates[idxDeath] += to_absorb;
 		//remove to_absorb from environment
-		
-	}
+	
 	return;
 
 	// check for contact with a cell
