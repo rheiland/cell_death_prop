@@ -70,9 +70,13 @@
 
 #include "./death.h"
 
+std::ofstream deadfile;
+
 // declare cell definitions here 
 void create_cell_types( void )
 {
+    deadfile.open ("dead_cells.dat");
+
 	static int idxDeath = microenvironment.find_density_index( "death_signal" ); 
 
 	SeedRandom( parameters.ints("random_seed") ); // or specify a seed here 
@@ -311,12 +315,15 @@ void death_function( Cell* pCell, Phenotype& phenotype, double dt )
 	
 	// compare against threshold. Should I commit apoptosis? 
 	double signal = phenotype.molecular.internalized_total_substrates[idxDeath]; 
-	std::cout << "-------death_function:  i_t_s= " << signal << std::endl;
+	// std::cout << "-------death_function:  i_t_s= " << signal << std::endl;
 		// pCell->lyse_cell(); // start_death( apoptosis_model_index );
 	// if( signal >= parameters.doubles("death_threshold") )
 	if( signal >= 15 )
 	{
-		std::cout << "\t\tdie!" << std::endl; 
+		// std::cout << "\t\tdie!" << std::endl; 
+		// std::cout << "-----------" << PhysiCell_globals.current_time << ", " << pCell->position[0] << ", " << pCell->position[1] << std::endl;
+		// std::cout << PhysiCell_globals.current_time << ", " << pCell->position[0] << ", " << pCell->position[1] << std::endl;
+        deadfile << PhysiCell_globals.current_time << ", " << pCell->position[0] << ", " << pCell->position[1] << std::endl;
 		pCell->lyse_cell(); // start_death( apoptosis_model_index );
 		pCell->functions.update_phenotype = NULL; 
 		return; 
@@ -327,6 +334,7 @@ void death_function( Cell* pCell, Phenotype& phenotype, double dt )
 	{
 		double new_death = parameters.doubles( "death_rate" ); 
 		new_death *= dt;
+		// std::cout << "-------death_function:  increasing death= " << new_death << std::endl;
 		phenotype.molecular.internalized_total_substrates[idxDeath] += new_death; 
 	}
 	return; 
@@ -342,7 +350,7 @@ std::vector<std::string> death_coloring_function( Cell* pCell )
 	// static double max_virus = parameters.doubles( "burst_virion_count" ); 
 	// static double denominator = max_virus - min_virus + 1e-15; 
 
-	std::cout << "--- death_coloring:  cell i_t_s " <<  pCell->phenotype.molecular.internalized_total_substrates[idxDeath] << std::endl;
+	// std::cout << "--- death_coloring:  cell i_t_s " <<  pCell->phenotype.molecular.internalized_total_substrates[idxDeath] << std::endl;
 	output[0] = "cyan"; 
 	output[1] = "cyan"; 
 	if( pCell->phenotype.molecular.internalized_total_substrates[idxDeath] == 1 ) {
