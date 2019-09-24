@@ -72,6 +72,8 @@
 
 std::ofstream deadfile;
 
+extern std::vector<double> x_dead, y_dead;
+
 // declare cell definitions here 
 void create_cell_types( void )
 {
@@ -323,7 +325,12 @@ void death_function( Cell* pCell, Phenotype& phenotype, double dt )
 		// std::cout << "\t\tdie!" << std::endl; 
 		// std::cout << "-----------" << PhysiCell_globals.current_time << ", " << pCell->position[0] << ", " << pCell->position[1] << std::endl;
 		// std::cout << PhysiCell_globals.current_time << ", " << pCell->position[0] << ", " << pCell->position[1] << std::endl;
-        deadfile << PhysiCell_globals.current_time << ", " << pCell->position[0] << ", " << pCell->position[1] << std::endl;
+
+        // deadfile << PhysiCell_globals.current_time << ", " << pCell->position[0] << ", " << pCell->position[1] << std::endl;
+		std::cout << "\t\t-------------- save dead cell at " << pCell->position[0] << pCell->position[1]<< std::endl; 
+		x_dead.push_back(pCell->position[0]);
+		y_dead.push_back(pCell->position[1]);
+
 		pCell->lyse_cell(); // start_death( apoptosis_model_index );
 		pCell->functions.update_phenotype = NULL; 
 		return; 
@@ -427,4 +434,187 @@ std::vector<double> integrate_total_substrates( void )
 		out += pC->phenotype.molecular.internalized_total_substrates;
 	}
 	return out; 
+}
+
+//---------------------------
+void my_SVG_plot( std::string filename , Microenvironment& M, double z_slice , double time, std::vector<std::string> (*cell_coloring_function)(Cell*))
+{
+	double X_lower = M.mesh.bounding_box[0];
+	double X_upper = M.mesh.bounding_box[3];
+ 
+	double Y_lower = M.mesh.bounding_box[1]; 
+	double Y_upper = M.mesh.bounding_box[4]; 
+
+	double plot_width = X_upper - X_lower; 
+	double plot_height = Y_upper - Y_lower; 
+
+	double font_size = 0.025 * plot_height; // PhysiCell_SVG_options.font_size; 
+	double top_margin = font_size*(.2+1+.2+.9+.5 ); 
+
+	// open the file, write a basic "header"
+	std::ofstream os( filename , std::ios::out );
+	if( os.fail() )
+	{ 
+		std::cout << std::endl << "Error: Failed to open " << filename << " for SVG writing." << std::endl << std::endl; 
+
+		std::cout << std::endl << "Error: We're not writing data like we expect. " << std::endl
+		<< "Check to make sure your save directory exists. " << std::endl << std::endl
+		<< "I'm going to exit with a crash code of -1 now until " << std::endl 
+		<< "you fix your directory. Sorry!" << std::endl << std::endl; 
+		exit(-1); 
+	} 
+	
+	Write_SVG_start( os, plot_width , plot_height + top_margin );
+
+	// draw the background 
+	Write_SVG_rect( os , 0 , 0 , plot_width, plot_height + top_margin , 0.002 * plot_height , "white", "white" );
+
+	// write the simulation time to the top of the plot
+ 
+	char* szString; 
+	szString = new char [1024]; 
+ 
+	int total_cell_count = all_cells->size(); 
+ 
+	double temp_time = time; 
+
+	std::string time_label = formatted_minutes_to_DDHHMM( temp_time ); 
+ 
+	sprintf( szString , "Current time: %s, z = %3.2f %s", time_label.c_str(), 
+		z_slice , PhysiCell_SVG_options.simulation_space_units.c_str() ); 
+	Write_SVG_text( os, szString, font_size*0.5,  font_size*(.2+1), 
+		font_size, PhysiCell_SVG_options.font_color.c_str() , PhysiCell_SVG_options.font.c_str() );
+	sprintf( szString , "%u agents" , total_cell_count ); 
+	Write_SVG_text( os, szString, font_size*0.5,  font_size*(.2+1+.2+.9), 
+		0.95*font_size, PhysiCell_SVG_options.font_color.c_str() , PhysiCell_SVG_options.font.c_str() );
+	
+	delete [] szString; 
+
+
+	// add an outer "g" for coordinate transforms 
+	
+	os << " <g id=\"tissue\" " << std::endl 
+	   << "    transform=\"translate(0," << plot_height+top_margin << ") scale(1,-1)\">" << std::endl; 
+	   
+	// prepare to do mesh-based plot (later)
+	
+	double dx_stroma = M.mesh.dx; 
+	double dy_stroma = M.mesh.dy; 
+	
+	os << "  <g id=\"ECM\">" << std::endl; 
+  
+	int ratio = 1; 
+	double voxel_size = dx_stroma / (double) ratio ; 
+  
+	double half_voxel_size = voxel_size / 2.0; 
+	double normalizer = 78.539816339744831 / (voxel_size*voxel_size*voxel_size); 
+	os << "  </g>" << std::endl; 
+ 
+	// plot intersecting cells 
+	os << "  <g id=\"cells\">" << std::endl; 
+	for( int i=0 ; i < total_cell_count ; i++ )
+	{
+		Cell* pC = (*all_cells)[i]; // global_cell_list[i]; 
+  
+		static std::vector<std::string> Colors; 
+		if( fabs( (pC->position)[2] - z_slice ) < pC->phenotype.geometry.radius )
+		{
+			double r = pC->phenotype.geometry.radius ; 
+			double rn = pC->phenotype.geometry.nuclear_radius ; 
+			double z = fabs( (pC->position)[2] - z_slice) ; 
+   
+			Colors = cell_coloring_function( pC ); 
+
+			os << "   <g id=\"cell" << pC->ID << "\">" << std::endl; 
+  
+			// figure out how much of the cell intersects with z = 0 
+   
+			double plot_radius = sqrt( r*r - z*z ); 
+
+			Write_SVG_circle( os, (pC->position)[0]-X_lower, (pC->position)[1]-Y_lower, 
+				plot_radius , 0.5, Colors[1], Colors[0] ); 
+
+			// plot the nucleus if it, too intersects z = 0;
+			if( fabs(z) < rn && PhysiCell_SVG_options.plot_nuclei == true )
+			{   
+				plot_radius = sqrt( rn*rn - z*z ); 
+			 	Write_SVG_circle( os, (pC->position)[0]-X_lower, (pC->position)[1]-Y_lower, 
+					plot_radius, 0.5, Colors[3],Colors[2]); 
+			}					  
+			os << "   </g>" << std::endl;
+		}
+	}
+	
+	// plot dead cells
+/* e.g.,
+<g id="dead001">
+  <circle cx="22.018" cy="1352.51" r="20" stroke-width="0.5" stroke="red" fill="red"/>
+</g>
+*/
+	double thickness =0.1; 
+	std::string dead_color ( "rgb(0,0,0)" );
+	for( int idx=0 ; idx < x_dead.size() ; idx++ )
+	{
+		os << " <g id=\"dead" << std::to_string(idx) << "\">" << std::endl; 
+		Write_SVG_circle( os, x_dead[idx]-Y_lower, y_dead[idx]-Y_lower, 20, thickness, dead_color, dead_color ); 
+		// os << "  <circle cx=\"" << std::to_string(x_dead[idx]) << "\"" <<  " cy=\"" << std::to_string(y_dead[idx]) << "\"  r=\"20\"" <<  
+		// y_dead[idx], thickness, 0.5 , dead_color , dead_color ); 
+		os << " </g>" << std::endl;
+	}
+	
+	os << "  </g>" << std::endl; 
+
+	// end of the <g ID="tissue">
+	os << " </g>" << std::endl; 
+ 
+	// draw a scale bar
+ 
+	double bar_margin = 0.025 * plot_height; 
+	double bar_height = 0.01 * plot_height; 
+	double bar_width = PhysiCell_SVG_options.length_bar; 
+	double bar_stroke_width = 0.001 * plot_height; 
+	
+	std::string bar_units = PhysiCell_SVG_options.simulation_space_units; 
+	// convert from micron to mm
+	double temp = bar_width;  
+
+	if( temp > 999 && std::strstr( bar_units.c_str() , PhysiCell_SVG_options.mu.c_str() )   )
+	{
+		temp /= 1000;
+		bar_units = "mm";
+	}
+	// convert from mm to cm 
+	if( temp > 9 && std::strcmp( bar_units.c_str() , "mm" ) == 0 )
+	{
+		temp /= 10; 
+		bar_units = "cm";
+	}
+	
+	szString = new char [1024];
+	sprintf( szString , "%u %s" , (int) round( temp ) , bar_units.c_str() );
+ 
+	Write_SVG_rect( os , plot_width - bar_margin - bar_width  , plot_height + top_margin - bar_margin - bar_height , 
+		bar_width , bar_height , 0.002 * plot_height , "rgb(255,255,255)", "rgb(0,0,0)" );
+	Write_SVG_text( os, szString , plot_width - bar_margin - bar_width + 0.25*font_size , 
+		plot_height + top_margin - bar_margin - bar_height - 0.25*font_size , 
+		font_size , PhysiCell_SVG_options.font_color.c_str() , PhysiCell_SVG_options.font.c_str() ); 
+	
+	delete [] szString; 
+
+	// plot runtime 
+	szString = new char [1024]; 
+	RUNTIME_TOC(); 
+	std::string formatted_stopwatch_value = format_stopwatch_value( runtime_stopwatch_value() );
+	Write_SVG_text( os, formatted_stopwatch_value.c_str() , bar_margin , top_margin + plot_height - bar_margin , 0.75 * font_size , 
+		PhysiCell_SVG_options.font_color.c_str() , PhysiCell_SVG_options.font.c_str() );
+	delete [] szString; 
+
+	// draw a box around the plot window
+	Write_SVG_rect( os , 0 , top_margin, plot_width, plot_height , 0.002 * plot_height , "rgb(0,0,0)", "none" );
+	
+	// close the svg tag, close the file
+	Write_SVG_end( os ); 
+	os.close();
+ 
+	return; 
 }

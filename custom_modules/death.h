@@ -110,3 +110,4 @@ std::vector<std::string> death_coloring_function( Cell* pCell );
 
 std::vector<double> integrate_total_substrates( void ); 
 
+void my_SVG_plot( std::string filename , Microenvironment& M, double z_slice , double time, std::vector<std::string> (*cell_coloring_function)(Cell*));
