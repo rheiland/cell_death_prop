@@ -8,14 +8,14 @@
 		<y_max>3000</y_max>
 		<z_min>-10</z_min>
 		<z_max>10</z_max>
-		<dx>20</dx>
-		<dy>20</dy>
-		<dz>20</dz>
+		<dx>50</dx>
+		<dy>50</dy>
+		<dz>50</dz>
 		<use_2D>true</use_2D>
 	</domain>
 	
 	<overall>
-		<max_time units="min">1440</max_time> 
+		<max_time units="min">250</max_time> 
 		<time_units>min</time_units>
 		<space_units>micron</space_units>
 	</overall>
@@ -28,12 +28,12 @@
 		<folder>output</folder> <!-- use . for root --> 
 
 		<full_data>
-			<interval units="min">30</interval>
+			<interval units="min">15</interval>
 			<enable>true</enable>
 		</full_data>
 		
 		<SVG>
-			<interval units="min">30</interval>
+			<interval units="min">15</interval>
 			<enable>true</enable>
 		</SVG>
 	</save>
@@ -56,14 +56,14 @@
 	
 	<user_parameters>
 		<random_seed type="int" units="dimensionless" hidden="true">0</random_seed> 
-		<new_csv_format type="bool" description="old vs. new .csv format">true</new_csv_format> 
-		<csv_file type="string" description="cell info">exp1.csv</csv_file> 
+		<csv_file type="string" description="cell info">test4.csv</csv_file> 
+		<csv_file2 type="string" description="neighbors info">test4b.csv</csv_file2>
 		<cell_radius type="double">20.0</cell_radius> 
-		<death_threshold type="double">0.7</death_threshold> 
-		<death_rate type="double">3</death_rate> 
+		<death_threshold type="double">1</death_threshold> 
+		<initial_internalized_substrate type="double">0.8</initial_internalized_substrate> 
 		<min_death_count type="double">10</min_death_count> 
 		<signal_internalization_rate type="double" units="1/min" description="internalization rate for death particles">10</signal_internalization_rate> 
-		<signal_diffusion_coefficient type="double" units="micron^2/min" description="diffusion coefficient for death signal particles">200.0</signal_diffusion_coefficient>
+		<signal_diffusion_coefficient type="double" units="micron^2/min" description="diffusion coefficient for death signal particles">500</signal_diffusion_coefficient>
 	</user_parameters>
 	
 	

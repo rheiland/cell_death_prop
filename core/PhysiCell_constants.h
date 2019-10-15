@@ -161,7 +161,7 @@ static std::string time_units = "min";
 static std::string space_units = "micron";
 static double diffusion_dt = 0.01; 
 static double mechanics_dt = 0.1;
-static double phenotype_dt = 6.0;
+static double phenotype_dt = 5.0;   //changed from 6.0 to match simulation to real experiment's time constant
 
 };
 
