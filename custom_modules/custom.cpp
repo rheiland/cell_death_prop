@@ -174,7 +174,7 @@ void setup_tissue(void)
 	std::ifstream infile2(csv_file2);
 	static int idxDeath = microenvironment.find_density_index("death_signal");
 	int idx, idx2;
-	double x, y, t_nuc, t_death;
+	double x, y, t_nuc, t_death_real, t_death;
 	char sep, sep2;
 	std::string neighbors;
 	int neiIdx;
@@ -184,13 +184,14 @@ void setup_tissue(void)
 	std::string line2;
 	std::getline(infile, line);
 	std::getline(infile2, line2);
+	std::string file_name;
 	std::cout << "-------- csv header: \n" << "id" << line << std::endl;
 	static double radius = parameters.doubles("cell_radius");
 	double volume = 4. / 3 * PhysiCell_constants::pi * radius * radius * radius;
-	while ((infile >> idx >> sep >> x >> sep >> y >> sep >> t_death >> sep >> t_nuc) && (sep == ',') && std::getline(infile2, line2))
+	while ((infile >> idx >> sep >> x >> sep >> y >> sep >> t_death_real >> sep>> t_death >> sep >> t_nuc>> sep>> file_name) && (sep == ',') && std::getline(infile2, line2))
 	{
 		std::cout << "cell " << idx << ":  x,y= " << x << "," << y;
-		std::cout << ", t_death= " << t_death << ", t_nuc = " << t_nuc << std::endl;
+		std::cout << ", t_death= " << t_death_real << ", t_nuc = " << t_nuc << std::endl;
 
 		pC = create_cell();
 		pC->index = idx;
@@ -198,8 +199,8 @@ void setup_tissue(void)
 		pC->set_total_volume(volume);
 
 		pC->phenotype.secretion.set_all_secretion_to_zero();
-		pC->custom_data["time_of_death"] = t_death * 15;
-		pC->custom_data["time_of_nucleation"] = t_nuc * 15;
+		pC->custom_data["time_of_death"] = t_death_real;
+		pC->custom_data["time_of_nucleation"] = t_nuc;
 		pC->custom_data["original_index"] = idx;
 		pC->phenotype.molecular.internalized_total_substrates[idxDeath] = parameters.doubles("initial_internalized_substrate");
 
