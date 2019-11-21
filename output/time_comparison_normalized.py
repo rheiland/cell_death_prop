@@ -10,14 +10,21 @@ import cv2
 from shapely.geometry import Polygon
 from bs4 import BeautifulSoup
 import pandas as pd
+import os
+
+# Create folder
+path = './Measurements/'
+if not os.path.exists(path):
+    os.makedirs(path)
+
 
 # configuration file
 in_configuration_file = open("configuration.xml", "r")
 contents = in_configuration_file.read()
 soup = BeautifulSoup(contents, 'xml')
 parameters = {'threshold': soup.find_all('death_threshold')[0].get_text(),
-              'substrate': soup.find_all('initial_internalized_substrate')[0].get_text(),
-              'rate to absorb': soup.find_all('signal_internalization_rate')[0].get_text(),
+              'initial substrate': soup.find_all('initial_internalized_substrate')[0].get_text(),
+              'absorption rate ': soup.find_all('signal_internalization_rate')[0].get_text(),
               'df coefficient': soup.find_all('signal_diffusion_coefficient')[0].get_text()}
 
 # time_comparison
@@ -165,7 +172,7 @@ plt.xlim(0, 1)
 plt.xticks(np.arange(0, 1.1, 0.1), fontsize='20')
 plt.ylim(0, 1)
 plt.yticks(np.arange(0, 1.25, 0.25), fontsize='20')
-plt.text(1, 1, 'Area between curves=\n' + str(total_area), fontsize='20', color='r')
+plt.text(1, 1, 'Ratio of area\nbetween curves=\n' + str(areas_ratio), fontsize='20', color='r')
 
 temp_diff = {}
 diffs_in_plot = {}
@@ -196,7 +203,6 @@ plt.title('Difference in time of 0.25, 0.5 and 0.75 dead cells', fontsize='40')
 plt.xlabel('fraction', fontsize='20', color='r')
 plt.ylabel('time difference', fontsize='20', color='r')
 plt.xticks(np.array(list(diffs_in_plot.keys())), fontsize='20')
-#plt.yticks(np.arange(0, 50, 5), fontsize='20')
 plt.show()
 
 # prop neighbors
@@ -349,12 +355,22 @@ plt.show()
 emd2 = sum(abs(np.cumsum(normalized_sim_neighbors_time_diffs)-np.cumsum(normalized_real_neighbors_time_diffs)))
 print("the EMD of the difference between time of death of each cell and its neighbors- normalized: ", emd2)
 
+# xml parameters
+first_param = list(parameters.items())[0]
+second_param = list(parameters.items())[1]
+third_param = list(parameters.items())[2]
+forth_param = list(parameters.items())[3]
+
 # Write into file
+file_name = file_name[0:-1]
 measurements_table = pd.DataFrame(
-    {'file_name': file_name,
-     'Ratio: area between real data curve and simulation curve to area under real data curve': areas_ratio,
+    {'File_name': file_name,
+     'Areas Ratio': areas_ratio,
      'Earth Movers Distance': [emd1],
-     'Parameters': parameters.items()
+     first_param[0]: first_param[1],
+     second_param[0]: second_param[1],
+     third_param[0]: third_param[1],
+     forth_param[0]: forth_param[1]
      })
 
 location = 'Measurements/' + 'measurements for ' + file_name + '.csv'

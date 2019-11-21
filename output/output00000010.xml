@@ -10,10 +10,10 @@
 			<user />
 		</software>
 		<citation />
-		<current_time units="min">150.000000</current_time>
-		<current_runtime units="sec">42.893498</current_runtime>
-		<created>2019-11-18T22:26:42Z</created>
-		<last_modified>2019-11-18T22:26:42Z</last_modified>
+		<current_time units="min">100.000000</current_time>
+		<current_runtime units="sec">19.604809</current_runtime>
+		<created>2019-11-21T15:17:01Z</created>
+		<last_modified>2019-11-21T15:17:01Z</last_modified>
 	</metadata>
 	<microenvironment>
 		<domain name="microenvironment">
@@ -30,7 +30,7 @@
 				<variable name="death_signal" units="particles/micron^3" ID="0">
 					<physical_parameter_set>
 						<conditions />
-						<diffusion_coefficient units="micron^2/min">500.000000</diffusion_coefficient>
+						<diffusion_coefficient units="micron^2/min">200.000000</diffusion_coefficient>
 						<decay_rate units="1/min">0.000000</decay_rate>
 					</physical_parameter_set>
 				</variable>
